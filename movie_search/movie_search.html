@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+
+    <script src="../bower_components/jquery/dist/jquery.js"></script>
+    <!--<link href="./bower_components/bootstrap.min.css" rel="stylesheet"  media="screen">-->
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+
+    <style>
+        #wrapper {
+            padding: 20px;
+        }
+
+    </style>
+
+    <script>
+
+
+        $(function() {
+            var $search = $('#search');
+            var $movieList = $('#movies_list');
+
+            $search.keydown(function(e) {
+                //  console.log (e.keyCode);
+                if (e.keyCode == 13) {
+                    var searchstring = $search.val()
+                  //  console.log(searchstring);
+                    getData(searchstring);
+                }
+            });
+
+            function sortMovies(arr){
+                var sortdata = arr.sort(function(a,b){
+                    var dateA = new Date(a['release_date']);
+                    var dateB = new Date(b['release_date']);
+                    return dateB - dateA;
+                });
+                return sortdata;
+            }
+
+            function getData(searchstring){
+
+                function appendData(movielist){
+                    var sortedList = sortMovies(movielist);
+                    $movieList.empty();
+
+                    sortedList.forEach(function(movie){
+
+                        var listItem = $('<a class="list-group-item list-group-item-danger">').append($('<span>').append(movie['original_title'] +
+                                ': '+movie['release_date'])) ;
+
+                        $movieList.append(listItem);
+
+                    });
+                }
+
+                var encode_uri = encodeURIComponent(searchstring);
+                var url = "https://api.themoviedb.org/3/search/person?api_key=92c8246bf53746d48551d84b6f9c7941&query=" + encode_uri;
+                $.ajax(url)
+                        .done(function(results) {
+                            var person_id;
+                            person_id = results['results'][0].id;
+                            var url2 = "https://api.themoviedb.org/3/person/"+ person_id +"/movie_credits?api_key=92c8246bf53746d48551d84b6f9c7941";
+                            $.ajax(url2)
+                                    .done(function(results2) {
+                                        console.log(results2);
+                                        console.log(results2.cast[2].original_title);
+                                        appendData(results2.cast);
+                                    });
+                        });
+            }
+        });
+
+    </script>
+
+</head>
+<body>
+
+<div id="container">
+
+    <div id="wrapper">
+        <div   class="col-lg-2 col-md-4 col-sm-4">
+            <div><input id='search' class=" form-group form-control" type="text" placeholder="Enter a name"/></div>
+        </div>
+        <br/><br/><br/>
+        <div  class="col-md-8 ">
+            <div id="movies_list" class="list-group">
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
